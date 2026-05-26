@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  orchestrator:
+    build: .
+    container_name: orchestrator
+    command: ["/app/orchestrator", "0.0.0.0:50051"]
+    ports:
+      - "50051:50051"
+
+  worker1:
+    build: .
+    container_name: worker1
+    command: ["/app/worker", "orchestrator:50051", "0.0.0.0:50052", "worker-1"]
+    depends_on:
+      - orchestrator
+    ports:
+      - "50052:50052"
+
+  worker2:
+    build: .
+    container_name: worker2
+    command: ["/app/worker", "orchestrator:50051", "0.0.0.0:50053", "worker-2"]
+    depends_on:
+      - orchestrator
+    ports:
+      - "50053:50053"
+
+  worker3:
+    build: .
+    container_name: worker3
+    command: ["/app/worker", "orchestrator:50051", "0.0.0.0:50054", "worker-3"]
+    depends_on:
+      - orchestrator
+    ports:
+      - "50054:50054"
+
+  client:
+    build: .
+    container_name: client
+    command: ["/app/client", "orchestrator:50051"]
+    depends_on:
+      - orchestrator
+      - worker1
+      - worker2
+      - worker3

@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package serving;
+
+option csharp_namespace = "Serving";
+
+message InferenceRequest {
+  string request_id = 1;
+  repeated float values = 2;
+  int64 client_timestamp_ms = 3;
+}
+
+message InferenceResponse {
+  string request_id = 1;
+  repeated float outputs = 2;
+  string worker_id = 3;
+  string status = 4;
+}
+
+message BatchRequest {
+  string batch_id = 1;
+  repeated InferenceRequest requests = 2;
+}
+
+message BatchResponse {
+  string worker_id = 1;
+  repeated InferenceResponse responses = 2;
+}
+
+message WorkerRegistration {
+  string worker_id = 1;
+  string worker_address = 2;
+}
+
+message WorkerStatus {
+  string worker_id = 1;
+  int32 active_tasks = 2;
+  int64 timestamp_ms = 3;
+}
+
+message HeartbeatMessage {
+  oneof payload {
+    WorkerRegistration registration = 1;
+    WorkerStatus status = 2;
+  }
+}
+
+message HeartbeatAck {
+  bool accepted = 1;
+  string message = 2;
+}
+
+service OrchestrationService {
+  rpc Infer(InferenceRequest) returns (InferenceResponse);
+}
+
+service WorkerHeartbeat {
+  rpc Heartbeat(stream HeartbeatMessage) returns (stream HeartbeatAck);
+}
+
+service WorkerNode {
+  rpc ProcessBatch(BatchRequest) returns (BatchResponse);
+}
